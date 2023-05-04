@@ -1,12 +1,10 @@
 """Team Manager server application"""
-import logging
 from typing import Optional, Dict, Any
 
 from flask import Flask
 
-from app import extensions, views
+from app import extensions, views, commands
 from app.config import ProductionConfig, DebugConfig
-
 from app.extensions.logger import LoggingConfig
 
 
@@ -30,15 +28,20 @@ def create_app(test_config: Optional[Dict[str, Any]] = None):
     logging_config = LoggingConfig(_config)
     logger = app.logger
     for _logger in (
-        app.logger,
+            app.logger,
     ):
         logging_config.configure(_logger)
 
     logger.debug("Debug message")
     logger.info("Configuration loaded")
 
+    # Register commands
+    commands.register_blueprints(app)
+
     # Register extensions
     api = extensions.create_api(app)
+
+    # Register views
     views.register_blueprints(api)
 
     return app
