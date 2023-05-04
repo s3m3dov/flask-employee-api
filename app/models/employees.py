@@ -10,7 +10,7 @@ class Employee(db.Model):
     __table_args__ = {"extend_existing": True}
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    name = sa.Column(sa.String(length=50))
-    department = sa.Column(sa.String(length=50))
+    name = sa.Column(sa.String(length=50), nullable=False)
+    department = sa.Column(sa.String(length=50), nullable=False)
     salary = sa.Column(sa.Float, nullable=False)
     hire_date = sa.Column(sa.DateTime, nullable=False)
