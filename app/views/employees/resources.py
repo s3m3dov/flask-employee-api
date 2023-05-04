@@ -1,11 +1,19 @@
+import logging
 from http import HTTPStatus as status
 
+from flask import request, current_app
 from flask.views import MethodView
 
-from app.extensions.api import Blueprint, SQLCursorPage
+from app.extensions.api import Blueprint
 from app.extensions.database import db
 from app.models.employees import Employee
-from .schemas import EmployeeSchema, DepartmentSchema
+from app.utils.pagination import get_pagination
+from .schemas import (
+    EmployeeSchema,
+    DepartmentSchema,
+    DepartmentPaginatedSchema,
+    EmployeePaginatedSchema,
+)
 
 blp = Blueprint(
     "Employees",
@@ -14,20 +22,29 @@ blp = Blueprint(
     description="Operations on employees, departments, and salaries",
 )
 
+logger = logging.getLogger(__name__)
+
 
 @blp.route("/employees/")
 class Employees(MethodView):
     @blp.etag
-    @blp.response(status_code=status.OK, schema=EmployeeSchema(many=True))
-    @blp.paginate(SQLCursorPage)
-    def get(self) -> EmployeeSchema:
+    @blp.response(status_code=status.OK, schema=EmployeePaginatedSchema)
+    def get(self) -> dict:
         """List employees.
 
         Returns:
             EmployeeSchema: The list of employees.
         """
-        employees = Employee.query.all()
-        return employees
+        page = request.args.get("page", 1, type=int)
+        per_page = current_app.config.get("PER_PAGE_LIMIT")
+        logger.debug(f"page: {page}, per_page: {per_page}")
+
+        employees = Employee.query.paginate(
+            page=page, per_page=per_page, error_out=True
+        )
+        count = employees.total
+        pagination = get_pagination(employees)
+        return {"count": count, "data": employees, "pagination": pagination}
 
     @blp.etag
     @blp.arguments(EmployeeSchema)
@@ -74,7 +91,7 @@ class EmployeeById(MethodView):
             EmployeeSchema: The updated employee.
         """
         employee = Employee.query.get_or_404(employee_id)
-        blp.check_etag(employee, EmployeeSchema)
+        logger.debug(employee_id)
         EmployeeSchema().update(employee, data)
         db.session.add(employee)
         db.session.commit()
@@ -88,7 +105,6 @@ class EmployeeById(MethodView):
             employee_id: int: The ID of the employee to delete.
         """
         employee = Employee.query.get_or_404(employee_id)
-        blp.check_etag(employee, EmployeeSchema)
         db.session.delete(employee)
         db.session.commit()
 
@@ -96,16 +112,26 @@ class EmployeeById(MethodView):
 @blp.route("/departments/")
 class Departments(MethodView):
     @blp.etag
-    @blp.response(status_code=status.OK, schema=DepartmentSchema(many=True))
-    @blp.paginate(SQLCursorPage)
-    def get(self) -> DepartmentSchema:
+    @blp.response(status_code=status.OK, schema=DepartmentPaginatedSchema)
+    def get(self) -> dict:
         """List departments.
 
         Returns:
             DepartmentSchema: The list of departments.
         """
-        departments = Employee.query.distinct(Employee.department).with_entities(Employee.department)
-        return departments
+        page = request.args.get("page", 1, type=int)
+        per_page = current_app.config.get("PER_PAGE_LIMIT")
+        logger.debug(f"page: {page}, per_page: {per_page}")
+
+        departments = (
+            Employee.query.distinct(Employee.department)
+            .with_entities(Employee.department.label("name"))
+            .paginate(page=page, per_page=per_page, error_out=True)
+        )
+        count = departments.total
+        pagination = get_pagination(departments)
+        logger.debug(count)
+        return {"count": count, "data": departments, "pagination": pagination}
 
 
 @blp.route("/departments/<string:department>")
