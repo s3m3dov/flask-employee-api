@@ -1,4 +1,5 @@
 """Team Manager server application"""
+import logging
 from typing import Optional, Dict, Any
 
 from flask import Flask
@@ -6,10 +7,12 @@ from flask import Flask
 from app import extensions, views
 from app.config import ProductionConfig, DebugConfig
 
+from app.extensions.logger import LoggingConfig
+
 
 def create_app(test_config: Optional[Dict[str, Any]] = None):
     """Create application"""
-    app = Flask("Team manager")
+    app = Flask(__name__)
 
     # Loading config...
     # Load defaults
@@ -23,6 +26,18 @@ def create_app(test_config: Optional[Dict[str, Any]] = None):
     # Override config with optional settings file
     app.config.from_envvar("FLASK_SETTINGS_FILE", silent=True)
 
+    # Configure logging
+    logging_config = LoggingConfig(_config)
+    logger = app.logger
+    for _logger in (
+        app.logger,
+    ):
+        logging_config.configure(_logger)
+
+    logger.debug("Debug message")
+    logger.info("Configuration loaded")
+
+    # Register extensions
     api = extensions.create_api(app)
     views.register_blueprints(api)
 
