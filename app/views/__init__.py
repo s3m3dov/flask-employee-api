@@ -2,10 +2,12 @@
 
 from . import members
 from . import teams
+from . import employees
 
 MODULES = (
     teams,
-    members
+    members,
+    employees,
 )
 
 
