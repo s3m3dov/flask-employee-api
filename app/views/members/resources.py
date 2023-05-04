@@ -1,4 +1,4 @@
-"""Members resources"""
+from http import HTTPStatus as status
 
 from flask.views import MethodView
 
@@ -8,7 +8,10 @@ from app.models.members import Member
 from .schemas import MemberSchema, MemberQueryArgsSchema
 
 blp = Blueprint(
-    "Members", __name__, url_prefix="/members", description="Operations on members"
+    "Members",
+    __name__,
+    url_prefix="/members",
+    description="Operations on members",
 )
 
 
@@ -16,7 +19,7 @@ blp = Blueprint(
 class Members(MethodView):
     @blp.etag
     @blp.arguments(MemberQueryArgsSchema, location="query")
-    @blp.response(200, MemberSchema(many=True))
+    @blp.response(status_code=status.OK, schema=MemberSchema(many=True))
     @blp.paginate(SQLCursorPage)
     def get(self, args):
         """List members"""
@@ -25,7 +28,7 @@ class Members(MethodView):
 
     @blp.etag
     @blp.arguments(MemberSchema)
-    @blp.response(201, MemberSchema)
+    @blp.response(status_code=status.CREATED, schema=MemberSchema)
     def post(self, new_item):
         """Add a new member"""
         item = Member(**new_item)
@@ -37,14 +40,14 @@ class Members(MethodView):
 @blp.route("/<uuid:item_id>")
 class MembersById(MethodView):
     @blp.etag
-    @blp.response(200, MemberSchema)
+    @blp.response(status_code=status.OK, schema=MemberSchema)
     def get(self, item_id):
         """Get member by ID"""
         return Member.query.get_or_404(item_id)
 
     @blp.etag
     @blp.arguments(MemberSchema)
-    @blp.response(200, MemberSchema)
+    @blp.response(status_code=status.OK, schema=MemberSchema)
     def put(self, new_item, item_id):
         """Update an existing member"""
         item = Member.query.get_or_404(item_id)
@@ -55,7 +58,7 @@ class MembersById(MethodView):
         return item
 
     @blp.etag
-    @blp.response(204)
+    @blp.response(status_code=status.NO_CONTENT)
     def delete(self, item_id):
         """Delete a member"""
         item = Member.query.get_or_404(item_id)
