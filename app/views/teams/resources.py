@@ -1,4 +1,4 @@
-"""Teams resources"""
+from http import HTTPStatus as status
 
 from flask.views import MethodView
 
@@ -9,7 +9,10 @@ from app.models.teams import Team
 from .schemas import TeamSchema, TeamQueryArgsSchema
 
 blp = Blueprint(
-    "Teams", __name__, url_prefix="/teams", description="Operations on teams"
+    "Teams",
+    __name__,
+    url_prefix="/teams",
+    description="Operations on teams",
 )
 
 
@@ -17,7 +20,7 @@ blp = Blueprint(
 class Teams(MethodView):
     @blp.etag
     @blp.arguments(TeamQueryArgsSchema, location="query")
-    @blp.response(200, TeamSchema(many=True))
+    @blp.response(status_code=status.CREATED, schema=TeamSchema(many=True))
     @blp.paginate(SQLCursorPage)
     def get(self, args):
         """List teams"""
@@ -29,7 +32,7 @@ class Teams(MethodView):
 
     @blp.etag
     @blp.arguments(TeamSchema)
-    @blp.response(201, TeamSchema)
+    @blp.response(status_code=status.CREATED, schema=TeamSchema)
     def post(self, new_item):
         """Add a new team"""
         item = Team(**new_item)
@@ -41,14 +44,14 @@ class Teams(MethodView):
 @blp.route("/<uuid:item_id>")
 class TeamsById(MethodView):
     @blp.etag
-    @blp.response(200, TeamSchema)
+    @blp.response(status_code=status.CREATED, schema=TeamSchema)
     def get(self, item_id):
         """Get team by ID"""
         return Team.query.get_or_404(item_id)
 
     @blp.etag
     @blp.arguments(TeamSchema)
-    @blp.response(200, TeamSchema)
+    @blp.response(status_code=status.CREATED, schema=TeamSchema)
     def put(self, new_item, item_id):
         """Update an existing team"""
         item = Team.query.get_or_404(item_id)
@@ -59,7 +62,7 @@ class TeamsById(MethodView):
         return item
 
     @blp.etag
-    @blp.response(204)
+    @blp.response(status_code=status.NO_CONTENT)
     def delete(self, item_id):
         """Delete a team"""
         item = Team.query.get_or_404(item_id)
