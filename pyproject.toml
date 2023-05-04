@@ -6,6 +6,13 @@ authors = ["Hikmat Samadov <s3m3dov@hotmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+flask = { extras = ["dotenv"], version = "^2.3.1" }
+SQLAlchemy = "^2.0.12"
+Flask-SQLAlchemy = "^3.0.3"
+Flask-Migrate = "^4.0.4"
+flask-smorest = "^0.41.0"
+marshmallow-sqlalchemy = "^0.29.0"
+SQLAlchemy-Utils = "^0.41.1"
 
 [tool.poetry.dev-dependencies]
 
