@@ -1,13 +1,20 @@
 """Module containing default config values."""
-from logging import WARNING, INFO
+import logging
 from os import urandom
 
-from .core import DefaultConfig
+from .default import DefaultConfig, LogConfig
 from .smorest_config import SmorestProductionConfig, SmorestDebugConfig
 from .sqlalchemy_config import SQLAchemyProductionConfig, SQLAchemyDebugConfig
 
 
-class ProductionConfig(DefaultConfig, SQLAchemyProductionConfig, SmorestProductionConfig):
+class MainConfig(DefaultConfig, LogConfig):
+    API_TITLE = "Team Manager API"
+    API_VERSION = 0.1
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_DATABASE_URI = "sqlite:///sqlite.db"
+
+
+class ProductionConfig(MainConfig, SQLAchemyProductionConfig, SmorestProductionConfig):
     ENV = "production"
     SECRET_KEY = urandom(32)
 
@@ -15,23 +22,18 @@ class ProductionConfig(DefaultConfig, SQLAchemyProductionConfig, SmorestProducti
 
     DEBUG = False
     TESTING = False
+    LOG_LEVEL = logging.INFO
 
     JSON_SORT_KEYS = False
     JSONIFY_PRETTYPRINT_REGULAR = False
-
-    LOG_CONFIG = None  # if set this is preferred
-
-    DEFAULT_LOG_SEVERITY = WARNING
-    DEFAULT_LOG_FORMAT_STYLE = "{"
-    DEFAULT_LOG_FORMAT = "{asctime} [{levelname:^7}] [{module:<30}] {message}    <{funcName}, {lineno}; {pathname}>"
-    DEFAULT_LOG_DATE_FORMAT = None
 
 
 class DebugConfig(ProductionConfig, SQLAchemyDebugConfig, SmorestDebugConfig):
     ENV = "development"
     DEBUG = True
+    LOG_LEVEL = logging.DEBUG
+    SQLALCHEMY_TRACK_MODIFICATIONS = True
+
     SECRET_KEY = (
         "debug_secret"  # FIXME make sure this NEVER! gets used in production!!!
     )
-
-    DEFAULT_LOG_SEVERITY = INFO
