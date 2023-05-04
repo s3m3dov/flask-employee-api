@@ -4,6 +4,7 @@ import click
 from faker import Faker
 from flask import Blueprint
 
+from app.constants import departments
 from app.extensions.database import db
 from app.models.employees import Employee
 
@@ -15,23 +16,7 @@ blp = Blueprint("employees", __name__, cli_group=None)
 def generate_employees(count: int):
     """Generate random employees"""
     fake = Faker()
-    departments = [
-        "Sales",
-        "Marketing",
-        "Engineering",
-        "Operations",
-        "Finance",
-        "Human Resources",
-        "Legal",
-        "Accounting",
-        "Information Technology",
-        "Customer Service",
-        "Research and Development",
-        "Product Management",
-        "Quality Assurance",
-        "Strategic Planning",
-        "Public Relations",
-    ]
+
     with db.session() as session:
         for _ in range(count):
             employee = Employee()

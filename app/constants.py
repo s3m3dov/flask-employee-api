@@ -1,0 +1,17 @@
+departments = (
+    "Sales",
+    "Marketing",
+    "Engineering",
+    "Operations",
+    "Finance",
+    "Human Resources",
+    "Legal",
+    "Accounting",
+    "Information Technology",
+    "Customer Service",
+    "Research and Development",
+    "Product Management",
+    "Quality Assurance",
+    "Strategic Planning",
+    "Public Relations",
+)
