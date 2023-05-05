@@ -62,7 +62,8 @@ def train_salary_prediction_model():
     click.echo(f"Split data into train and test sets")
 
     # Train a model to predict salaries
-    #
+    # used Ridge regression because it performed better on random data
+    # however would use Lasso or MultiLinearRegression for real data
     model = Ridge(alpha=0.1)
     model.fit(X_train, y_train)
 
