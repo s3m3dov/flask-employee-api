@@ -20,7 +20,7 @@ The Flask API has the following endpoints:
 - `flask train-salary-model --count 1000`: run this command to train salary prediction model
 
 ## Models
-The database is generated using the SQLAlchemy library and contains a table called "employees" with the following columns:
+The database is generated using the SQLAlchemy library and contains a table called "`employees`" with the following columns:
 - `id`: an auto-incrementing integer and primary key
 - `name`: a string with a maximum length of 50 characters
 - `department`: a string with a maximum length of 50 characters
