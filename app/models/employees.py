@@ -12,5 +12,5 @@ class Employee(db.Model):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     name = sa.Column(sa.String(length=50), nullable=False)
     department = sa.Column(sa.String(length=50), nullable=False)
-    salary = sa.Column(sa.Float, nullable=False)
+    salary = sa.Column(sa.Float, nullable=False, default=0.0)
     hire_date = sa.Column(sa.DateTime, nullable=False)

@@ -1,6 +1,8 @@
 import logging
 from http import HTTPStatus as status
 
+import joblib
+import pandas as pd
 import sqlalchemy as sa
 from flask import request, current_app
 from flask.views import MethodView
@@ -15,7 +17,10 @@ from .schemas import (
     DepartmentPaginatedSchema,
     EmployeePaginatedSchema,
     AverageSalarySchema,
+    SalaryPredictedSchema,
+    SalaryPredictInputSchema,
 )
+from app.constants import departments
 
 blp = Blueprint(
     "Employees",
@@ -24,6 +29,9 @@ blp = Blueprint(
     description="Operations on employees, departments, and salaries",
 )
 
+# Load the trained model.
+model = joblib.load("model.pkl")
+# Logger
 logger = logging.getLogger(__name__)
 
 
@@ -163,102 +171,121 @@ class Department(MethodView):
 
 
 @blp.route("/average_salary/<string:department>")
-@blp.etag
-@blp.response(status_code=status.OK, schema=AverageSalarySchema)
-def get_average_salary(department: str) -> dict:
-    """Get the average salary of employees in the specified department.
+class AverageSalary(MethodView):
+    @blp.etag
+    @blp.response(status_code=status.OK, schema=AverageSalarySchema)
+    def get(self, department: str) -> dict:
+        """Get the average salary of employees in the specified department.
 
-    Args:
-        department: str: The name of the department to get the average salary for.
+        Args:
+            department: str: The name of the department to get the average salary for.
 
-    Returns:
-        int: average salary.
-    """
-    logger.debug(f"department: {department}")
-    department = DepartmentSchema().load({"name": department})
-    avg_salary = (
-        Employee.query.with_entities(sa.func.avg(Employee.salary))
-        .filter_by(department=department["name"])
-        .scalar()
-    )
-    logger.debug(f"avg_salary: {avg_salary}")
-    return {"data": avg_salary}
-
-
-@blp.etag
-@blp.route("/top_earners/", methods=["GET"])
-@blp.response(status_code=status.OK, schema=EmployeePaginatedSchema)
-def get_top_earners() -> dict:
-    """Get a list of the top 10 earners in the company based on their salary.
-
-    Returns:
-        EmployeeSchema: A list of the top 10 earners in the company.
-    """
-    page = request.args.get("page", 1, type=int)
-    per_page = current_app.config.get("PER_PAGE_LIMIT")
-    top_result_limit = current_app.config.get("TOP_RESULT_LIMIT")
-
-    logger.debug(
-        f"page: {page}, per_page: {per_page}, top_result_limit: {top_result_limit}"
-    )
-
-    top_employees_cte = (
-        db.session.query(Employee)
-        .order_by(Employee.salary.desc())
-        .limit(top_result_limit)
-        .cte()
-    )
-    employees = db.session.query(top_employees_cte).paginate(
-        page=page, per_page=per_page, error_out=True
-    )
-
-    logger.debug(employees)
-    pagination = get_pagination(employees)
-    return {"data": employees, "pagination": pagination}
+        Returns:
+            int: average salary.
+        """
+        logger.debug(f"department: {department}")
+        department = DepartmentSchema().load({"name": department})
+        avg_salary = (
+            Employee.query.with_entities(sa.func.avg(Employee.salary))
+            .filter_by(department=department["name"])
+            .scalar()
+        )
+        logger.debug(f"avg_salary: {avg_salary}")
+        return {"data": avg_salary}
 
 
-@blp.route("/most_recent_hires/", methods=["GET"])
-@blp.etag
-@blp.response(status_code=status.OK, schema=EmployeePaginatedSchema)
-def get_most_recent_hires() -> dict:
-    """Get a list of the most recent hires in the company.
+@blp.route("/top_earners/")
+class TopEarners(MethodView):
+    @blp.etag
+    @blp.response(status_code=status.OK, schema=EmployeePaginatedSchema)
+    def get(self) -> dict:
+        """Get a list of the top 10 earners in the company based on their salary.
 
-    Returns:
-        EmployeeSchema: A list of the most recent hires in the company.
-    """
-    page = request.args.get("page", 1, type=int)
-    per_page = current_app.config.get("PER_PAGE_LIMIT")
-    top_result_limit = current_app.config.get("TOP_RESULT_LIMIT")
+        Returns:
+            EmployeeSchema: A list of the top 10 earners in the company.
+        """
+        page = request.args.get("page", 1, type=int)
+        per_page = current_app.config.get("PER_PAGE_LIMIT")
+        top_result_limit = current_app.config.get("TOP_RESULT_LIMIT")
 
-    logger.debug(
-        f"page: {page}, per_page: {per_page}, top_result_limit: {top_result_limit}"
-    )
+        logger.debug(
+            f"page: {page}, per_page: {per_page}, top_result_limit: {top_result_limit}"
+        )
 
-    top_employees_cte = (
-        db.session.query(Employee)
-        .order_by(Employee.hire_date.desc())
-        .limit(top_result_limit)
-        .cte()
-    )
-    employees = db.session.query(top_employees_cte).paginate(
-        page=page, per_page=per_page, error_out=True
-    )
+        top_employees_cte = (
+            db.session.query(Employee)
+            .order_by(Employee.salary.desc())
+            .limit(top_result_limit)
+            .cte()
+        )
+        employees = db.session.query(top_employees_cte).paginate(
+            page=page, per_page=per_page, error_out=True
+        )
 
-    logger.debug(employees)
-    pagination = get_pagination(employees)
-    return {"data": employees, "pagination": pagination}
+        logger.debug(employees)
+        pagination = get_pagination(employees)
+        return {"data": employees, "pagination": pagination}
 
 
-@blp.etag
-@blp.route("/predict_salary/", methods=["POST"])
-@blp.response(status_code=status.OK, schema=EmployeeSchema(many=True))
-def predict_salary(data: EmployeeSchema) -> int:
-    """Predict the salary of a new employee based on department, hire date, and job title
+@blp.route("/most_recent_hires/")
+class MostRecentHires(MethodView):
+    @blp.etag
+    @blp.response(status_code=status.OK, schema=EmployeePaginatedSchema)
+    def get(self) -> dict:
+        """Get a list of the most recent hires in the company.
 
-    Args:
-        data: EmployeeSchema: The data to use to predict the salary of the employee.
+        Returns:
+            EmployeeSchema: A list of the most recent hires in the company.
+        """
+        page = request.args.get("page", 1, type=int)
+        per_page = current_app.config.get("PER_PAGE_LIMIT")
+        top_result_limit = current_app.config.get("TOP_RESULT_LIMIT")
 
-    Returns:
-        int: predicted salary.
-    """
-    return 0
+        logger.debug(
+            f"page: {page}, per_page: {per_page}, top_result_limit: {top_result_limit}"
+        )
+
+        top_employees_cte = (
+            db.session.query(Employee)
+            .order_by(Employee.hire_date.desc())
+            .limit(top_result_limit)
+            .cte()
+        )
+        employees = db.session.query(top_employees_cte).paginate(
+            page=page, per_page=per_page, error_out=True
+        )
+
+        logger.debug(employees)
+        pagination = get_pagination(employees)
+        return {"data": employees, "pagination": pagination}
+
+
+@blp.route("/predict_salary/")
+class PredictSalary(MethodView):
+    @blp.etag
+    @blp.arguments(EmployeeSchema)
+    @blp.response(status_code=status.OK, schema=SalaryPredictedSchema)
+    def post(self, data: SalaryPredictInputSchema) -> dict:
+        """Predict the salary of a new employee based on department, hire date, and job title
+
+        Args:
+            data: EmployeeSchema: The data to use to predict the salary of the employee.
+
+        Returns:
+            int: predicted salary.
+        """
+        logger.debug(f"data: {data}")
+        data = {
+            "department": data["department"],
+            "hire_date": data["hire_date"].timestamp(),
+        }
+        # Convert the data to a Pandas DataFrame.
+        df = pd.DataFrame(data, index=[0])
+        department_to_int = {department: i for i, department in enumerate(departments)}
+        df["department"] = df["department"].map(department_to_int)
+
+        # Predict the salary.
+        prediction = model.predict(df)
+
+        # Return the prediction.
+        return {"data": prediction}

@@ -1,4 +1,4 @@
-from marshmallow import fields as ma_fields, validates, ValidationError
+from marshmallow import fields as ma_fields, validates, ValidationError, Schema
 from marshmallow_sqlalchemy import field_for
 
 from app.constants import departments
@@ -32,3 +32,16 @@ class DepartmentPaginatedSchema(BasePaginatedSchema):
 
 class AverageSalarySchema(AutoSchema):
     data = ma_fields.Float(required=True)
+
+
+class SalaryPredictedSchema(AutoSchema):
+    data = ma_fields.Float(required=True)
+
+
+class SalaryPredictInputSchema(EmployeeSchema):
+    name = ma_fields.Str(allow_none=True)
+    department = ma_fields.Str(required=True)
+    hire_date = ma_fields.Date(required=True)
+
+    class Meta(AutoSchema.Meta):
+        fields = ("name", "department", "hire_date")
