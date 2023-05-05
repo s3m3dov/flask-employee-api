@@ -29,17 +29,27 @@ The database is generated using the SQLAlchemy library and contains a table call
 
 ## Set-Up
 1. Clone the repository:
-- ```git clone https://github.com/s3m3dov/flask-employee-api.git```
+```
+git clone https://github.com/s3m3dov/flask-employee-api.git
+```
 
 2. Set-up poetry
-- ```poetry env use python3.10```
-- ```poetry install```
+```
+poetry env use python3.10
+```
+```
+poetry install
+```
 
 3. Run the development server
-- ```poetry run flask run```
+```
+poetry run flask run
+```
 
 4. Generate fake data for employees
-- ```flask train-salary-model --count 1000```
+```
+flask train-salary-model --count 1000
+```
 
 ## Documentation
 The API documentation is available at:
