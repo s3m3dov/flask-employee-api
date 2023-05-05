@@ -77,7 +77,9 @@ def train_salary_prediction_model():
         transformers=[
             ('cat', categorical_transformer, categorical_cols),
             ('num', numerical_transformer, numerical_cols)
-        ])
+        ],
+        remainder='passthrough'
+    )
 
     # Train a model to predict salaries
     # used Ridge regression because it performed better on random data
