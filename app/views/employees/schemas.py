@@ -28,3 +28,7 @@ class EmployeePaginatedSchema(BasePaginatedSchema):
 
 class DepartmentPaginatedSchema(BasePaginatedSchema):
     data = ma_fields.List(ma_fields.Nested(DepartmentSchema()))
+
+
+class AverageSalarySchema(AutoSchema):
+    data = ma_fields.Float(required=True)
