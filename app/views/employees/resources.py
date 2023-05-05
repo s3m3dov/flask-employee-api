@@ -1,6 +1,7 @@
 import logging
 from http import HTTPStatus as status
 
+import sqlalchemy as sa
 from flask import request, current_app
 from flask.views import MethodView
 
@@ -13,6 +14,7 @@ from .schemas import (
     DepartmentSchema,
     DepartmentPaginatedSchema,
     EmployeePaginatedSchema,
+    AverageSalarySchema,
 )
 
 blp = Blueprint(
@@ -163,8 +165,8 @@ class Department(MethodView):
 
 @blp.route("/average_salary/<string:department>")
 @blp.etag
-@blp.response(status_code=status.OK, schema=int)
-def get_average_salary(department: DepartmentSchema) -> int:
+@blp.response(status_code=status.OK, schema=AverageSalarySchema)
+def get_average_salary(department: str) -> dict:
     """Get the average salary of employees in the specified department.
 
     Args:
@@ -173,8 +175,15 @@ def get_average_salary(department: DepartmentSchema) -> int:
     Returns:
         int: average salary.
     """
-    employees = Employee.query.order_by(Employee.salary.desc()).limit(10)
-    return employees
+    logger.debug(f"department: {department}")
+    department = DepartmentSchema().load({"name": department})
+    avg_salary = (
+        Employee.query.with_entities(sa.func.avg(Employee.salary))
+        .filter_by(department=department["name"])
+        .scalar()
+    )
+    logger.debug(f"avg_salary: {avg_salary}")
+    return {"data": avg_salary}
 
 
 @blp.etag
