@@ -2,7 +2,7 @@ from flask import request
 from flask_sqlalchemy.pagination import QueryPagination
 
 
-def get_pagination(collection: QueryPagination):
+def get_pagination(collection: QueryPagination) -> dict:
     base_url = request.base_url
     pagination_data = {
         "prev_url": base_url + f"?page={collection.prev_num}" if collection.has_prev else None,

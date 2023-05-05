@@ -130,15 +130,14 @@ class Departments(MethodView):
         )
         count = departments.total
         pagination = get_pagination(departments)
-        logger.debug(count)
         return {"count": count, "data": departments, "pagination": pagination}
 
 
 @blp.route("/departments/<string:department>")
 class Department(MethodView):
     @blp.etag
-    @blp.response(status_code=status.OK, schema=EmployeeSchema(many=True))
-    def get(self, department: str) -> EmployeeSchema:
+    @blp.response(status_code=status.OK, schema=EmployeePaginatedSchema)
+    def get(self, department: str) -> dict:
         """Get employees of a department.
         Args:
             department: str: The name of the department to get employees for.
@@ -146,8 +145,22 @@ class Department(MethodView):
         Returns:
             EmployeeSchema: The list of employees for the department.
         """
-        employees = Employee.query.filter_by(department=department)
-        return employees
+        logger.debug(f"department: {department}")
+        department = DepartmentSchema().load({"name": department})
+
+        page = request.args.get("page", 1, type=int)
+        per_page = current_app.config.get("PER_PAGE_LIMIT")
+        logger.debug(f"page: {page}, per_page: {per_page}")
+
+        employees = (
+            Employee.query.filter_by(department=department["name"])
+            .order_by(Employee.hire_date.desc())
+            .paginate(page=page, per_page=per_page, error_out=True)
+        )
+
+        count = employees.total
+        pagination = get_pagination(employees)
+        return {"count": count, "data": employees, "pagination": pagination}
 
 
 class Statistics(MethodView):

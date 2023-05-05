@@ -1,10 +1,17 @@
 """Team Manager server application"""
+
 from typing import Optional, Dict, Any
 
-from flask import Flask
+from flask import Flask, jsonify
+from marshmallow import ValidationError
+from werkzeug.exceptions import HTTPException
 
+from http import HTTPStatus as status
+from app import extensions, views, commands
 from app import extensions, views, commands
 from app.config import ProductionConfig, DebugConfig
+from app.config import ProductionConfig, DebugConfig
+from app.extensions.logger import LoggingConfig
 from app.extensions.logger import LoggingConfig
 
 
@@ -27,9 +34,7 @@ def create_app(test_config: Optional[Dict[str, Any]] = None):
     # Configure logging
     logging_config = LoggingConfig(_config)
     logger = app.logger
-    for _logger in (
-            app.logger,
-    ):
+    for _logger in (app.logger,):
         logging_config.configure(_logger)
 
     logger.debug("Debug message")
@@ -43,5 +48,30 @@ def create_app(test_config: Optional[Dict[str, Any]] = None):
 
     # Register views
     views.register_blueprints(api)
+
+    # Exception handlers
+    @app.errorhandler(HTTPException)
+    def handle_http_exception(e):
+        response = jsonify(
+            {
+                "code": e.code,
+                "status": e.name,
+                "message": e.description,
+            }
+        )
+        response.status_code = e.code
+        return response
+
+    @app.errorhandler(ValidationError)
+    def handle_validation_error(e):
+        response = jsonify(
+            {
+                "code": status.BAD_REQUEST,
+                "status": status.BAD_REQUEST.phrase,
+                "message": e.messages,
+            }
+        )
+        response.status_code = status.BAD_REQUEST
+        return response
 
     return app

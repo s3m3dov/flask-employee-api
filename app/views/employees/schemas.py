@@ -16,7 +16,7 @@ class EmployeeSchema(AutoSchema):
 class DepartmentSchema(AutoSchema):
     name = ma_fields.Str(required=True)
 
-    @validates("department")
+    @validates("name")
     def validate_department(self, value):
         if value not in departments:
             raise ValidationError(f"{value} is not a valid department")
