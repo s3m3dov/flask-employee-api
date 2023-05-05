@@ -6,7 +6,7 @@ from flask.logging import default_handler
 
 class LoggingConfig:
     def __init__(self, config):
-        self.LOG_LEVEL = config.get('LOG_LEVEL')
+        self.LOG_LEVEL = config.get('LOG_LEVEL', logging.INFO)
         self.LOG_FORMAT = config.get('LOG_FORMAT')
         self.LOG_DATE_FORMAT = config.get('LOG_DATE_FORMAT')
 
