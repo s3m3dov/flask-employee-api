@@ -15,6 +15,9 @@ The Flask API has the following endpoints:
 - `GET /most_recent_hires`: Returns a list of the 10 most recently hired employees.
 - `POST /predict_salary`: Takes in data for a new employee (department, hire date, and job title) and returns the predicted salary.
 
+## Commands
+- `flask generate-employees`: run this command to generate employees using `faker`
+- `flask train-salary-model --count 1000`: run this command to train salary prediction model
 
 ## Models
 The database is generated using the SQLAlchemy library and contains a table called "employees" with the following columns:
@@ -33,7 +36,10 @@ The database is generated using the SQLAlchemy library and contains a table call
 - ```poetry install```
 
 3. Run the development server
-```poetry run flask run```
+- ```poetry run flask run```
+
+4. Generate fake data for employees
+- ```flask train-salary-model --count 1000```
 
 ## Documentation
 The API documentation is available at:
