@@ -59,14 +59,14 @@ The API documentation is available at:
 
 ## Dependencies
 - Python 3.10
-- Flask: a micro web framework for Python used to build the API endpoints
-- Flask-Smorest: an extension for Flask that simplifies the creation of RESTful APIs
-- Marshmallow: a Python library for serializing and deserializing data, which is used for validating input and output data in the API
-- Flask-SQLAlchemy: an extension for Flask that adds support for SQLAlchemy, a SQL toolkit and ORM, which is used for communicating with the SQLite database
-- SQLAlchemy-Utils: a library that provides various utility functions for working with SQLAlchemy
-- pandas: a library for data manipulation and analysis, used for loading and preprocessing data for the salary prediction model.
-- scikit-learn: a popular machine learning library for Python, used for building and training the salary prediction model
-- colorlog: a library that provides colored logs
-- Faker: a library for generating fake data, used for populating the SQLite database with random employee data
-- Flask-Migrate: an extension for Flask that handles SQLAlchemy database migrations
-- Flask-Testing: an extension for Flask that provides utilities for testing the API
+- `Flask`: a micro web framework for Python used to build the API endpoints
+- `Flask-Smorest`: an extension for Flask that simplifies the creation of RESTful APIs
+- `Marshmallow`: a Python library for serializing and deserializing data, which is used for validating input and output data in the API
+- `Flask-SQLAlchemy`: an extension for Flask that adds support for SQLAlchemy, a SQL toolkit and ORM, which is used for communicating with the SQLite database
+- `SQLAlchemy-Utils`: a library that provides various utility functions for working with SQLAlchemy
+- `pandas`: a library for data manipulation and analysis, used for loading and preprocessing data for the salary prediction model.
+- `scikit-learn`: a popular machine learning library for Python, used for building and training the salary prediction model
+- `colorlog`: a library that provides colored logs
+- `Faker`: a library for generating fake data, used for populating the SQLite database with random employee data
+- `Flask-Migrate`: an extension for Flask that handles SQLAlchemy database migrations
+- `Flask-Testing`: an extension for Flask that provides utilities for testing the API
