@@ -129,7 +129,6 @@ class Departments(MethodView):
             .with_entities(Employee.department.label("name"))
             .paginate(page=page, per_page=per_page, error_out=True)
         )
-        count = departments.total
         pagination = get_pagination(departments)
         return {"data": departments, "pagination": pagination}
 
