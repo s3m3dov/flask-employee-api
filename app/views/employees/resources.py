@@ -42,9 +42,8 @@ class Employees(MethodView):
         employees = Employee.query.paginate(
             page=page, per_page=per_page, error_out=True
         )
-        count = employees.total
         pagination = get_pagination(employees)
-        return {"count": count, "data": employees, "pagination": pagination}
+        return {"data": employees, "pagination": pagination}
 
     @blp.etag
     @blp.arguments(EmployeeSchema)
@@ -130,7 +129,7 @@ class Departments(MethodView):
         )
         count = departments.total
         pagination = get_pagination(departments)
-        return {"count": count, "data": departments, "pagination": pagination}
+        return {"data": departments, "pagination": pagination}
 
 
 @blp.route("/departments/<string:department>")
@@ -158,70 +157,100 @@ class Department(MethodView):
             .paginate(page=page, per_page=per_page, error_out=True)
         )
 
-        count = employees.total
         pagination = get_pagination(employees)
-        return {"count": count, "data": employees, "pagination": pagination}
+        return {"data": employees, "pagination": pagination}
 
 
-class Statistics(MethodView):
-    @blp.route("/average_salary/<string:department>")
-    @blp.etag
-    @blp.response(status_code=status.OK, schema=DepartmentSchema)
-    def get(self, department: DepartmentSchema) -> int:
-        """Get the average salary of employees in the specified department.
+@blp.route("/average_salary/<string:department>")
+@blp.etag
+@blp.response(status_code=status.OK, schema=int)
+def get_average_salary(department: DepartmentSchema) -> int:
+    """Get the average salary of employees in the specified department.
 
-        Args:
-            department: str: The name of the department to get the average salary for.
+    Args:
+        department: str: The name of the department to get the average salary for.
 
-        Returns:
-            int: average salary.
-        """
-        employees = Employee.query.order_by(Employee.salary.desc()).limit(10)
-        return employees
+    Returns:
+        int: average salary.
+    """
+    employees = Employee.query.order_by(Employee.salary.desc()).limit(10)
+    return employees
 
-    @blp.etag
-    @blp.route(
-        "/top_earners/",
-        methods=["GET"],
+
+@blp.etag
+@blp.route("/top_earners/", methods=["GET"])
+@blp.response(status_code=status.OK, schema=EmployeePaginatedSchema)
+def get_top_earners() -> dict:
+    """Get a list of the top 10 earners in the company based on their salary.
+
+    Returns:
+        EmployeeSchema: A list of the top 10 earners in the company.
+    """
+    page = request.args.get("page", 1, type=int)
+    per_page = current_app.config.get("PER_PAGE_LIMIT")
+    top_result_limit = current_app.config.get("TOP_RESULT_LIMIT")
+
+    logger.debug(
+        f"page: {page}, per_page: {per_page}, top_result_limit: {top_result_limit}"
     )
-    @blp.response(status_code=status.OK, schema=EmployeeSchema(many=True))
-    def get(self) -> EmployeeSchema:
-        """Get a list of the top 10 earners in the company based on their salary.
 
-        Returns:
-            EmployeeSchema: A list of the top 10 earners in the company.
-        """
-        employees = Employee.query.order_by(Employee.salary.desc()).limit(10)
-        return employees
-
-    @blp.etag
-    @blp.route(
-        "/most_recent_hires/",
-        methods=["GET"],
+    top_employees_cte = (
+        db.session.query(Employee)
+        .order_by(Employee.salary.desc())
+        .limit(top_result_limit)
+        .cte()
     )
-    @blp.response(status_code=status.OK, schema=EmployeeSchema(many=True))
-    def get(self) -> EmployeeSchema:
-        """Get a list of the most recent hires in the company.
-
-        Returns:
-            EmployeeSchema: A list of the most recent hires in the company.
-        """
-        employees = Employee.query.order_by(Employee.hire_date.desc()).limit(10)
-        return employees
-
-    @blp.etag
-    @blp.route(
-        "/predict_salary/",
-        methods=["POST"],
+    employees = db.session.query(top_employees_cte).paginate(
+        page=page, per_page=per_page, error_out=True
     )
-    @blp.response(status_code=status.OK, schema=EmployeeSchema(many=True))
-    def post(self, data: EmployeeSchema) -> int:
-        """Predict the salary of a new employee based on department, hire date, and job title
 
-        Args:
-            data: EmployeeSchema: The data to use to predict the salary of the employee.
+    logger.debug(employees)
+    pagination = get_pagination(employees)
+    return {"data": employees, "pagination": pagination}
 
-        Returns:
-            int: predicted salary.
-        """
-        return 0
+
+@blp.route("/most_recent_hires/", methods=["GET"])
+@blp.etag
+@blp.response(status_code=status.OK, schema=EmployeePaginatedSchema)
+def get_most_recent_hires() -> dict:
+    """Get a list of the most recent hires in the company.
+
+    Returns:
+        EmployeeSchema: A list of the most recent hires in the company.
+    """
+    page = request.args.get("page", 1, type=int)
+    per_page = current_app.config.get("PER_PAGE_LIMIT")
+    top_result_limit = current_app.config.get("TOP_RESULT_LIMIT")
+
+    logger.debug(
+        f"page: {page}, per_page: {per_page}, top_result_limit: {top_result_limit}"
+    )
+
+    top_employees_cte = (
+        db.session.query(Employee)
+        .order_by(Employee.hire_date.desc())
+        .limit(top_result_limit)
+        .cte()
+    )
+    employees = db.session.query(top_employees_cte).paginate(
+        page=page, per_page=per_page, error_out=True
+    )
+
+    logger.debug(employees)
+    pagination = get_pagination(employees)
+    return {"data": employees, "pagination": pagination}
+
+
+@blp.etag
+@blp.route("/predict_salary/", methods=["POST"])
+@blp.response(status_code=status.OK, schema=EmployeeSchema(many=True))
+def predict_salary(data: EmployeeSchema) -> int:
+    """Predict the salary of a new employee based on department, hire date, and job title
+
+    Args:
+        data: EmployeeSchema: The data to use to predict the salary of the employee.
+
+    Returns:
+        int: predicted salary.
+    """
+    return 0

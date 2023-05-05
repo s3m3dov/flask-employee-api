@@ -37,14 +37,13 @@ class PaginationSchema(ma.Schema):
     prev_url = ma.fields.String()
     current_url = ma.fields.String()
     next_url = ma.fields.String()
-    total_pages = ma.fields.Integer()
     per_page = ma.fields.Integer()
+    total_pages = ma.fields.Integer()
+    total_items = ma.fields.Integer()
 
 
 class BasePaginatedSchema(ma.Schema):
     """Base paginated schema"""
-
-    count = ma.fields.Integer()
     data = ma.fields.List(ma.fields.Nested(Schema()))
     pagination = ma.fields.Nested(PaginationSchema())
 

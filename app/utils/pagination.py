@@ -8,7 +8,8 @@ def get_pagination(collection: QueryPagination) -> dict:
         "prev_url": base_url + f"?page={collection.prev_num}" if collection.has_prev else None,
         "current_url": base_url + f"?page={collection.page}",
         "next_url": base_url + f"?page={collection.next_num}" if collection.has_next else None,
-        "total_pages": collection.pages,
         "per_page": collection.per_page,
+        "total_pages": collection.pages,
+        "total_items": collection.total,
     }
     return pagination_data

@@ -5,6 +5,7 @@ class DefaultConfig:
     API_TITLE: str = "Flask API"
     API_VERSION: float = 0.1
     PER_PAGE_LIMIT: int = 25
+    TOP_RESULT_LIMIT: int = 10
 
 
 class LogConfig:
