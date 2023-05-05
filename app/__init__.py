@@ -36,6 +36,7 @@ def create_app(test_config: Optional[Dict[str, Any]] = None):
     logger = app.logger
     for _logger in (app.logger,):
         logging_config.configure(_logger)
+        logger.setLevel(logging_config.LOG_LEVEL)
 
     logger.debug("Debug message")
     logger.info("Configuration loaded")
