@@ -53,7 +53,7 @@ poetry run pytest app/tests
 
 5. Generate fake data for employees
 ```
-flask train-salary-model --count 1000
+poetry run flask generate-employees --count 1000
 ```
 
 ## Documentation
