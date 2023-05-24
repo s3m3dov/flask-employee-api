@@ -16,8 +16,8 @@ The Flask API has the following endpoints:
 - `POST /predict_salary`: Takes in data for a new employee (department and hire date) and returns the predicted salary.
 
 ## Commands
-- `flask generate-employees`: run this command to generate employees using `faker`
-- `flask train-salary-model --count 1000`: run this command to train salary prediction model
+- `flask generate-employees --count 1000`: run this command to generate employees using `faker`
+- `flask train-salary-model`: run this command to train salary prediction model
 
 ## Models
 The database is generated using the SQLAlchemy library and contains a table called "`employees`" with the following columns:
